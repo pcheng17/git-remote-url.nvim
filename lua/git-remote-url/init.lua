@@ -1,4 +1,9 @@
 local M = {}
+
+local defaults = {
+    default_branch = "main"
+}
+
 local function build_url(branch)
 	local git_url = vim.fn.system("git config --get remote.origin.url")
 	if git_url == "" then
@@ -13,17 +18,17 @@ local function build_url(branch)
 
 	local path = vim.fn.expand("%")
 	local lineNum = vim.api.nvim__buf_stats(0).current_lnum
-	if branch == nil then
-		branch = "main"
-	end
 	local combined = git_url .. "/blob/" .. branch .. "/" .. path .. "#L" .. lineNum
 
 	return combined
 end
 
 M.setup = function(opts)
+    opts = opts or {}
+    opts = vim.tbl_extend("force", defaults, opts)
+
 	vim.api.nvim_create_user_command('CopyGithubLink', function()
-		local combined = build_url()
+		local combined = build_url(opts.default_branch)
 		vim.fn.setreg("+", combined)
 	end, {})
 
